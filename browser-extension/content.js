@@ -1,4 +1,3 @@
-const SHADOWAI_API = "http://localhost:8000/api/proxy/inspect";
 const DEFAULT_POLICY = "developer";
 
 function findPromptBox() {
@@ -66,13 +65,12 @@ async function inspectPrompt() {
     return;
   }
   try {
-    const response = await fetch(SHADOWAI_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, policy_mode: DEFAULT_POLICY, page_url: location.href })
+    const response = await chrome.runtime.sendMessage({
+      type: "SHADOWAI_INSPECT",
+      payload: { text, policy_mode: DEFAULT_POLICY, page_url: location.href }
     });
-    if (!response.ok) throw new Error(`Local proxy returned ${response.status}`);
-    showPanel(await response.json(), promptBox);
+    if (!response?.ok) throw new Error(response?.error || "Local proxy did not respond");
+    showPanel(response.data, promptBox);
   } catch (error) {
     showPanel({
       risk_score: 0,
