@@ -1,0 +1,5 @@
+.env
+.venv/
+shadowai.db
+__pycache__/
+*.py[cod]
