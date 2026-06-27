@@ -173,12 +173,6 @@ ShadowAI Guardian is designed to run locally:
 
 ---
 
-## Resume Bullets
-
-- Built a local-first AI privacy firewall that detects secrets, personal information, and prompt injection attacks before data reaches GenAI tools.
-- Implemented a FastAPI + SQLite backend with async SQLAlchemy models, ML-based risk scoring, GitHub repository scanning, document scanning, and PDF report generation.
-- Developed a Next.js + TypeScript dashboard with privacy scoring, charts, report history, safe prompt rewriting, and an agentic seven-step privacy workflow.
-- Packaged the project for one-command local deployment across Windows, macOS, and Linux.
 
 ---
 
