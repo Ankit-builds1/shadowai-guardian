@@ -1,4 +1,4 @@
-﻿# ShadowAI Guardian
+# ShadowAI Guardian
 
 ## Agentic Privacy Firewall for GenAI Tool Usage
 
