@@ -1,4 +1,4 @@
-# ShadowAI Guardian
+﻿# ShadowAI Guardian
 
 ## Agentic Privacy Firewall for GenAI Tool Usage
 
@@ -30,7 +30,7 @@ It detects API keys, passwords, database URLs, private keys, JWTs, personal iden
 ### Windows
 
 ```powershell
-git clone https://github.com/YOUR_USERNAME/shadowai-guardian.git
+git clone https://github.com/Ankit-builds1/shadowai-guardian.git
 cd shadowai-guardian
 .\setup.ps1
 .\start.ps1
@@ -39,7 +39,7 @@ cd shadowai-guardian
 ### macOS / Linux
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/shadowai-guardian.git
+git clone https://github.com/Ankit-builds1/shadowai-guardian.git
 cd shadowai-guardian
 chmod +x setup.sh start.sh
 ./setup.sh
@@ -120,25 +120,25 @@ NVIDIA_NIM_MODEL=meta/llama-3.1-8b-instruct
 
 ```text
 shadowai-guardian/
-├── backend/
-│   ├── app/
-│   │   ├── api/              # FastAPI routers
-│   │   ├── agents/           # Agentic privacy workflow
-│   │   ├── core/             # Config, SQLite models, async DB
-│   │   ├── detectors/        # Regex + prompt injection detectors
-│   │   ├── genai/            # NVIDIA NIM wrappers + fallbacks
-│   │   ├── ml/               # TF-IDF + Random Forest model
-│   │   ├── services/         # PDF, GitHub, report generation
-│   │   └── schemas/          # Pydantic request models
-│   └── requirements.txt
-├── frontend/
-│   ├── app/                  # Next.js pages
-│   ├── components/           # Shared UI components
-│   └── package.json
-├── data/                     # Synthetic local sample data
-├── setup.ps1 / setup.sh      # Local setup scripts
-├── start.ps1 / start.sh      # Local app runners
-└── .env.example
+â”œâ”€â”€ backend/
+â”‚   â”œâ”€â”€ app/
+â”‚   â”‚   â”œâ”€â”€ api/              # FastAPI routers
+â”‚   â”‚   â”œâ”€â”€ agents/           # Agentic privacy workflow
+â”‚   â”‚   â”œâ”€â”€ core/             # Config, SQLite models, async DB
+â”‚   â”‚   â”œâ”€â”€ detectors/        # Regex + prompt injection detectors
+â”‚   â”‚   â”œâ”€â”€ genai/            # NVIDIA NIM wrappers + fallbacks
+â”‚   â”‚   â”œâ”€â”€ ml/               # TF-IDF + Random Forest model
+â”‚   â”‚   â”œâ”€â”€ services/         # PDF, GitHub, report generation
+â”‚   â”‚   â””â”€â”€ schemas/          # Pydantic request models
+â”‚   â””â”€â”€ requirements.txt
+â”œâ”€â”€ frontend/
+â”‚   â”œâ”€â”€ app/                  # Next.js pages
+â”‚   â”œâ”€â”€ components/           # Shared UI components
+â”‚   â””â”€â”€ package.json
+â”œâ”€â”€ data/                     # Synthetic local sample data
+â”œâ”€â”€ setup.ps1 / setup.sh      # Local setup scripts
+â”œâ”€â”€ start.ps1 / start.sh      # Local app runners
+â””â”€â”€ .env.example
 ```
 
 ---
