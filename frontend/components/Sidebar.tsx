@@ -2,17 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Clipboard, FileBarChart, FileText, Github, Globe, LayoutDashboard, Search, ShieldAlert } from "lucide-react";
+import { FileBarChart, Github, LayoutDashboard, MonitorCheck, Search, ShieldAlert } from "lucide-react";
 import clsx from "clsx";
 
 const nav = [
   ["/dashboard", "Dashboard", LayoutDashboard],
-  ["/scanner", "Scanner", Search],
-  ["/clipboard", "Clipboard", Clipboard],
-  ["/documents", "Documents", FileText],
-  ["/github", "GitHub", Github],
-  ["/tool-risk", "Tool Risk", Globe],
-  ["/agent", "Agent", Bot],
+  ["/scanner", "Prompt Firewall", Search],
+  ["/github", "Repo Scanner", Github],
+  ["/extension", "Browser Proxy", MonitorCheck],
   ["/reports", "Reports", FileBarChart]
 ] as const;
 
@@ -30,7 +27,7 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
-      <div className="m-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Privacy Score: local-first</div>
+      <div className="m-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Local-first AI safety proxy</div>
     </aside>
   );
 }

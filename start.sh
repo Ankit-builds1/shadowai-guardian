@@ -22,6 +22,7 @@ echo ""
 echo "Starting ShadowAI Guardian..."
 echo "Backend:  http://localhost:8000"
 echo "Frontend: http://localhost:3000"
+echo "Chrome extension folder: $ROOT/browser-extension"
 
 (cd "$BACKEND" && "$PYTHON" -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload) &
 BACKEND_PID=$!
@@ -36,4 +37,6 @@ elif command -v open >/dev/null 2>&1; then
 fi
 
 trap 'kill "$BACKEND_PID" "$FRONTEND_PID" 2>/dev/null || true' INT TERM EXIT
+echo "App launched. Keep this terminal open. Press Ctrl+C to stop."
+echo "To use the browser proxy, load the browser-extension folder in chrome://extensions."
 wait

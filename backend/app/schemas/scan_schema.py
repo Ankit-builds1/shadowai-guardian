@@ -16,9 +16,7 @@ class RepoScanRequest(BaseModel):
     repo_url: str = Field(min_length=8)
 
 
-class ToolRiskRequest(BaseModel):
-    domain: str = Field(min_length=3)
-
-
-class AgentRequest(BaseModel):
+class ProxyInspectRequest(BaseModel):
     text: str = Field(min_length=1)
+    policy_mode: str = "developer"
+    page_url: str | None = None

@@ -24,7 +24,7 @@ export default function GithubPage() {
   return (
     <div className="space-y-6">
       <div className="card">
-        <h1 className="mb-4 flex items-center gap-2 text-2xl font-bold"><Github /> GitHub Repository Scan</h1>
+        <h1 className="mb-4 flex items-center gap-2 text-2xl font-bold"><Github /> Repo Secret Scanner</h1>
         <div className="flex gap-3"><input className="input" placeholder="https://github.com/org/repo" value={repoUrl} onChange={(e) => setRepoUrl(e.target.value)} /><button className="btn" onClick={scan} disabled={loading || !repoUrl}>{loading && <Loader2 className="h-4 w-4 animate-spin" />} Scan Repository</button></div>
         {loading && <p className="mt-3 text-sm text-slate-500">Cloning... Scanning files... Analyzing...</p>}
       </div>

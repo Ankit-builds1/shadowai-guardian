@@ -1,0 +1,86 @@
+#shadowai-inspect {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2147483647;
+  border: 0;
+  border-radius: 8px;
+  background: #0f172a;
+  color: white;
+  cursor: pointer;
+  font: 600 13px system-ui, sans-serif;
+  padding: 10px 14px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+}
+
+.shadowai-panel {
+  position: fixed;
+  right: 18px;
+  bottom: 68px;
+  z-index: 2147483647;
+  width: 360px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #0f172a;
+  font: 14px system-ui, sans-serif;
+  padding: 14px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.25);
+}
+
+.shadowai-block {
+  border-color: #ef4444;
+}
+
+.shadowai-warn {
+  border-color: #f97316;
+}
+
+.shadowai-allow {
+  border-color: #22c55e;
+}
+
+.shadowai-title {
+  font-weight: 800;
+}
+
+.shadowai-meta {
+  margin-top: 4px;
+  color: #475569;
+  font-size: 12px;
+}
+
+.shadowai-body {
+  margin-top: 10px;
+  line-height: 1.45;
+}
+
+.shadowai-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.shadowai-actions button,
+.shadowai-popup button {
+  border: 0;
+  border-radius: 6px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 8px 10px;
+}
+
+.shadowai-popup {
+  width: 260px;
+  margin: 0;
+  padding: 16px;
+  color: #0f172a;
+  font: 14px system-ui, sans-serif;
+}
+
+.shadowai-popup h1 {
+  font-size: 18px;
+  margin: 0 0 8px;
+}

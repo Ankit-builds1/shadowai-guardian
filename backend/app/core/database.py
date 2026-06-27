@@ -21,15 +21,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-class User(Base):
-    __tablename__ = "users"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(120))
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-
 class PromptScan(Base):
     __tablename__ = "prompt_scans"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -60,19 +51,6 @@ class DetectedEntity(Base):
     scan: Mapped[PromptScan] = relationship(back_populates="entities")
 
 
-class DocumentScan(Base):
-    __tablename__ = "document_scans"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    filename: Mapped[str] = mapped_column(String(255))
-    file_type: Mapped[str] = mapped_column(String(40))
-    risk_score: Mapped[int] = mapped_column(Integer)
-    risk_level: Mapped[str] = mapped_column(String(40))
-    entity_count: Mapped[int] = mapped_column(Integer)
-    injection_detected: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-
 class RepoScan(Base):
     __tablename__ = "repo_scans"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -97,46 +75,6 @@ class RepoFileFinding(Base):
     line_number: Mapped[int] = mapped_column(Integer)
     redacted_value: Mapped[str] = mapped_column(Text)
     repo_scan: Mapped[RepoScan] = relationship(back_populates="findings")
-
-
-class ToolRiskScore(Base):
-    __tablename__ = "tool_risk_scores"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    domain: Mapped[str] = mapped_column(String(255), index=True)
-    tool_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    is_known_tool: Mapped[bool] = mapped_column(Boolean)
-    is_https: Mapped[bool] = mapped_column(Boolean)
-    user_trust_status: Mapped[str] = mapped_column(String(80))
-    risk_score: Mapped[int] = mapped_column(Integer)
-    risk_level: Mapped[str] = mapped_column(String(40))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-
-class AuditLog(Base):
-    __tablename__ = "audit_logs"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    action: Mapped[str] = mapped_column(String(120))
-    description: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-
-class PrivacyScore(Base):
-    __tablename__ = "privacy_scores"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    month: Mapped[int] = mapped_column(Integer)
-    year: Mapped[int] = mapped_column(Integer)
-    total_scans: Mapped[int] = mapped_column(Integer)
-    critical_count: Mapped[int] = mapped_column(Integer)
-    high_count: Mapped[int] = mapped_column(Integer)
-    medium_count: Mapped[int] = mapped_column(Integer)
-    low_count: Mapped[int] = mapped_column(Integer)
-    safe_count: Mapped[int] = mapped_column(Integer)
-    privacy_score: Mapped[int] = mapped_column(Integer)
-    grade: Mapped[str] = mapped_column(String(8))
-    improvement_percent: Mapped[float] = mapped_column(Float)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 async def init_db() -> None:

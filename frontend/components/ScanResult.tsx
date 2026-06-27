@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import EntityCard from "./EntityCard";
 import { RiskBadge } from "./RiskBadge";
@@ -30,7 +29,6 @@ export default function ScanResult({ result, safeText, onRewrite }: { result: an
       </div>
       <div className="flex gap-3">
         {onRewrite && <button className="btn" onClick={onRewrite}>Get Safe Version</button>}
-        <Link className="btn" href="/agent">Run AI Agent</Link>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import agent, dashboard, github_scan, reports, rewrite, scan, tool_risk
+from app.api import dashboard, github_scan, proxy, reports, rewrite, scan
 from app.core.database import init_db
 from app.ml.predict import load_model
 
@@ -17,6 +17,7 @@ app.add_middleware(
         "http://localhost:3020",
         "http://127.0.0.1:3020",
     ],
+    allow_origin_regex=r"chrome-extension://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,8 +26,7 @@ app.add_middleware(
 app.include_router(scan.router, prefix="/api")
 app.include_router(rewrite.router, prefix="/api")
 app.include_router(github_scan.router, prefix="/api")
-app.include_router(tool_risk.router, prefix="/api")
-app.include_router(agent.router, prefix="/api")
+app.include_router(proxy.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 

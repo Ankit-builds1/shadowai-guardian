@@ -9,7 +9,6 @@ pandas
 numpy
 sentence-transformers
 PyMuPDF
-python-docx
 requests
 openai
 pydantic
@@ -17,3 +16,4 @@ pydantic-settings
 httpx
 gitpython
 joblib
+pytest

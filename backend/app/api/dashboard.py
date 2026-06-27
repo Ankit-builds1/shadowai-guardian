@@ -10,6 +10,42 @@ from app.core.database import DetectedEntity, PromptScan, get_db
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
+def build_risk_timeline(scans: list, today: datetime | None = None, days: int = 7) -> list[dict]:
+    end = (today or datetime.utcnow()).date()
+    start = end - timedelta(days=days - 1)
+    buckets = {
+        (start + timedelta(days=offset)): {
+            "date": (start + timedelta(days=offset)).isoformat(),
+            "total": 0,
+            "safe": 0,
+            "low": 0,
+            "medium": 0,
+            "high": 0,
+            "critical": 0,
+            "risk_sum": 0,
+            "average_risk": 0,
+        }
+        for offset in range(days)
+    }
+    for scan in scans:
+        scan_day = scan.created_at.date()
+        if scan_day not in buckets:
+            continue
+        bucket = buckets[scan_day]
+        level_key = str(scan.risk_level).lower()
+        bucket["total"] += 1
+        bucket["risk_sum"] += int(scan.risk_score)
+        if level_key in {"safe", "low", "medium", "high", "critical"}:
+            bucket[level_key] += 1
+    timeline = []
+    for bucket in buckets.values():
+        if bucket["total"]:
+            bucket["average_risk"] = round(bucket["risk_sum"] / bucket["total"], 1)
+        bucket.pop("risk_sum")
+        timeline.append(bucket)
+    return timeline
+
+
 def get_last_month_score() -> int:
     return 82
 
@@ -53,6 +89,7 @@ async def stats(db: AsyncSession = Depends(get_db)):
             "average_risk_score": round(sum(s.risk_score for s in scans) / total, 1) if total else 0,
             "privacy_amnesia_score": calculate_monthly_privacy_score(scans),
             "risk_distribution": [{"name": name, "value": distribution.get(name, 0)} for name in ["Safe", "Low", "Medium", "High", "Critical"]],
+            "risk_timeline": build_risk_timeline(scans),
             "entity_breakdown": [{"name": k, "value": v} for k, v in entity_types.items()],
             "recent_scans": [{"id": s.id, "created_at": s.created_at, "source_type": s.source_type, "risk_level": s.risk_level, "category": s.category, "risk_score": s.risk_score} for s in scans[:10]],
         }

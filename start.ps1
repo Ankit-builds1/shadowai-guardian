@@ -21,6 +21,7 @@ Write-Host ""
 Write-Host "Starting ShadowAI Guardian..." -ForegroundColor Cyan
 Write-Host "Backend:  http://localhost:8000" -ForegroundColor Yellow
 Write-Host "Frontend: http://localhost:3000" -ForegroundColor Yellow
+Write-Host "Chrome extension folder: $Root\browser-extension" -ForegroundColor Yellow
 
 $BackendCommand = "Set-Location `"$Backend`"; `"$PythonExe`" -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload"
 $FrontendCommand = "Set-Location `"$Frontend`"; npm run dev -- -p 3000"
@@ -33,3 +34,4 @@ Start-Process "http://localhost:3000"
 
 Write-Host ""
 Write-Host "App launched. Keep the backend and frontend terminal windows open." -ForegroundColor Green
+Write-Host "To use the browser proxy, load the browser-extension folder in chrome://extensions." -ForegroundColor Green
