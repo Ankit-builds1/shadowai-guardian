@@ -7,8 +7,8 @@ ShadowAI Guardian is a focused cybersecurity + AI/ML project that prevents sensi
 The project is intentionally kept to four strong features:
 
 1. **Prompt Firewall** - detects secrets, PII, credentials, and prompt injection before AI submission.
-2. **Browser Extension / Local Proxy** - inspects prompts on AI websites through `localhost` before they are sent.
-3. **Repo Secret Scanner** - scans public GitHub repositories for exposed credentials.
+2. **Browser Extension / Local Proxy** - inspects prompts on AI websites and scans GitHub repo pages through `localhost`.
+3. **Repo Secret Scanner** - scans public GitHub repositories for exposed credentials from the app or extension.
 4. **Risk Timeline + Reports** - tracks privacy score improvement and generates PDF audit reports.
 
 No cloud database. No telemetry. GenAI enhancement is optional. Core scanning works locally.
@@ -54,13 +54,24 @@ After `start.ps1` or `start.sh` is running:
 4. Click **Load unpacked**.
 5. Select the `browser-extension` folder from this repo.
 
-The extension adds an **Inspect with ShadowAI** button on supported AI websites and calls:
+The extension adds:
+
+- **Inspect with ShadowAI** on supported AI websites.
+- **Scan Repo with ShadowAI** on GitHub repository pages.
+
+For prompt inspection it calls:
 
 ```text
 http://localhost:8000/api/proxy/inspect
 ```
 
-Supported sites include ChatGPT, Claude, Gemini, and Microsoft Copilot.
+For GitHub repository scans it calls:
+
+```text
+http://localhost:8000/api/scan/github
+```
+
+Supported AI sites include ChatGPT, Claude, Gemini, and Microsoft Copilot. GitHub repo pages are supported at `https://github.com/owner/repo`.
 
 ---
 
@@ -155,7 +166,7 @@ shadowai-guardian/
 
 ## Interview Pitch
 
-> I built ShadowAI Guardian, a local-first AI safety proxy that scans prompts and repositories for secrets, PII, prompt injection, and risky AI usage before data reaches GenAI tools. It includes a Chrome extension, FastAPI policy engine, ML risk scoring, privacy timeline, and PDF audit reports.
+> I built ShadowAI Guardian, a local-first AI safety proxy that scans prompts and GitHub repositories for secrets, PII, prompt injection, and risky AI usage before data reaches GenAI tools. It includes a Chrome extension that works on AI sites and GitHub repo pages, a FastAPI policy engine, ML risk scoring, privacy timeline, and PDF audit reports.
 
 ## Resume Bullets
 

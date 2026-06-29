@@ -53,6 +53,47 @@ function showPanel(result, promptBox) {
   });
 }
 
+function showRepoPanel(result) {
+  let panel = document.getElementById("shadowai-panel");
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = "shadowai-panel";
+    document.body.appendChild(panel);
+  }
+  const isError = Boolean(result.error);
+  panel.className = `shadowai-panel shadowai-${isError ? "warn" : result.risk_level === "Safe" ? "allow" : "block"}`;
+  panel.innerHTML = `
+    <div class="shadowai-title">ShadowAI Repo Scan: ${isError ? "WARN" : result.risk_level}</div>
+    <div class="shadowai-meta">${result.repo_name || "GitHub repository"}</div>
+    <div class="shadowai-body">
+      ${isError ? result.error : `${result.files_scanned} files scanned<br>${result.secrets_found} secrets found<br>Risk ${result.risk_score}/100`}
+    </div>
+    <div class="shadowai-actions">
+      <button id="shadowai-close">Close</button>
+    </div>
+  `;
+  panel.querySelector("#shadowai-close")?.addEventListener("click", () => panel.remove());
+}
+
+async function scanGitHubRepo() {
+  const repoUrl = getGitHubRepoUrl(location.href);
+  if (!repoUrl) {
+    showRepoPanel({ error: "Open a GitHub repository page to scan it." });
+    return;
+  }
+  showRepoPanel({ repo_name: repoUrl, risk_level: "Scanning", files_scanned: "Scanning", secrets_found: "Scanning", risk_score: 0 });
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: "SHADOWAI_SCAN_REPO",
+      payload: { repo_url: repoUrl }
+    });
+    if (!response?.ok) throw new Error(response?.error || "Local repo scanner did not respond");
+    showRepoPanel(response.data);
+  } catch (error) {
+    showRepoPanel({ repo_name: repoUrl, error: `Local backend is not reachable: ${error.message}` });
+  }
+}
+
 async function inspectPrompt() {
   const promptBox = findPromptBox();
   const text = readPrompt(promptBox).trim();
@@ -85,8 +126,9 @@ function mountButton() {
   const button = document.createElement("button");
   button.id = "shadowai-inspect";
   button.type = "button";
-  button.textContent = "Inspect with ShadowAI";
-  button.addEventListener("click", inspectPrompt);
+  const isGitHubRepo = Boolean(getGitHubRepoUrl(location.href));
+  button.textContent = isGitHubRepo ? "Scan Repo with ShadowAI" : "Inspect with ShadowAI";
+  button.addEventListener("click", isGitHubRepo ? scanGitHubRepo : inspectPrompt);
   document.body.appendChild(button);
 }
 
