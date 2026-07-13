@@ -63,6 +63,37 @@ def test_scan_file_policy_accepts_dotenv_and_rejects_dependencies(tmp_path):
     assert not should_scan_path(binary, tmp_path)
 
 
+def test_low_findings_do_not_accumulate_into_high_repository_risk():
+    from app.services.github_service import summarize_findings
+
+    findings = [
+        {"entity_type": "EMAIL", "severity": "low"},
+        {"entity_type": "EMAIL", "severity": "low"},
+        {"entity_type": "PHONE", "severity": "low"},
+    ]
+
+    assert summarize_findings(findings) == {
+        "secrets_found": 0,
+        "risk_score": 10,
+        "risk_level": "Low",
+    }
+
+
+def test_repository_secret_count_only_includes_credentials():
+    from app.services.github_service import summarize_findings
+
+    findings = [
+        {"entity_type": "EMAIL", "severity": "low"},
+        {"entity_type": "API_KEY", "severity": "critical"},
+    ]
+
+    assert summarize_findings(findings) == {
+        "secrets_found": 1,
+        "risk_score": 100,
+        "risk_level": "Critical",
+    }
+
+
 def test_api_returns_400_for_invalid_repository_url():
     from app.api.github_scan import scan_github
     from app.schemas.scan_schema import RepoScanRequest

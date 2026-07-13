@@ -10,6 +10,30 @@ from app.services.repository_url import normalize_github_repo_url
 
 ALLOWED_EXTENSIONS = {".py", ".js", ".ts", ".tsx", ".jsx", ".env", ".json", ".yaml", ".yml", ".md", ".txt", ".ini", ".toml"}
 IGNORED_DIRECTORIES = {".git", ".venv", "venv", "node_modules", ".next", "dist", "build", "__pycache__"}
+CREDENTIAL_ENTITY_TYPES = {"API_KEY", "PASSWORD", "DATABASE_URL", "PRIVATE_KEY", "JWT_TOKEN"}
+SEVERITY_SCORES = {"critical": 100, "high": 75, "medium": 40, "low": 10}
+
+
+def summarize_findings(findings: list[dict]) -> dict:
+    score = max(
+        (SEVERITY_SCORES.get(str(finding.get("severity", "")).lower(), 0) for finding in findings),
+        default=0,
+    )
+    level = (
+        "Critical" if score >= 100 else
+        "High" if score >= 75 else
+        "Medium" if score >= 40 else
+        "Low" if score > 0 else
+        "Safe"
+    )
+    return {
+        "secrets_found": sum(
+            1 for finding in findings
+            if finding.get("entity_type") in CREDENTIAL_ENTITY_TYPES
+        ),
+        "risk_score": score,
+        "risk_level": level,
+    }
 
 
 def should_scan_path(path: Path, root: Path, max_file_bytes: int = 1_000_000) -> bool:
@@ -53,9 +77,14 @@ def scan_repository(repo_url: str, *, max_files: int = 5000, max_file_bytes: int
             for entity in detect_all(text)["entities"]:
                 line_number = text[: entity["start_index"]].count("\n") + 1
                 findings.append({"file_path": str(path.relative_to(tmp)), "line_number": line_number, **entity})
-        score = min(100, sum(40 if f["severity"] == "critical" else 25 if f["severity"] == "high" else 10 for f in findings))
-        level = "Critical" if score > 80 else "High" if score > 60 else "Medium" if score > 40 else "Low" if score > 0 else "Safe"
+        summary = summarize_findings(findings)
         repo_name = repo_url.rsplit("/", 1)[-1]
-        return {"repo_name": repo_name, "repo_url": repo_url, "files_scanned": files_scanned, "secrets_found": len(findings), "findings": findings, "risk_score": score, "risk_level": level}
+        return {
+            "repo_name": repo_name,
+            "repo_url": repo_url,
+            "files_scanned": files_scanned,
+            "findings": findings,
+            **summary,
+        }
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
