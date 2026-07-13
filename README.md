@@ -1,182 +1,330 @@
-# ShadowAI Guardian
+<div align="center">
 
-## Local-First AI Safety Proxy
+# SHADOWAI GUARDIAN
 
-ShadowAI Guardian is a focused cybersecurity + AI/ML project that prevents sensitive data from leaking into GenAI tools. It runs locally, scans prompts and GitHub repositories, applies policy-based blocking, tracks privacy risk over time, and exports audit-ready PDF reports.
+### Local AI Privacy Firewall and Secret Leak Protection
 
-The project is intentionally kept to four strong features:
+[![Docker](https://img.shields.io/badge/Docker-CLI--first-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-local_API-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![Chrome Extension](https://img.shields.io/badge/Chrome-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](browser-extension/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-1. **Prompt Firewall** - detects secrets, PII, credentials, and prompt injection before AI submission.
-2. **Browser Extension / Local Proxy** - inspects prompts on AI websites and scans GitHub repo pages through `localhost`.
-3. **Repo Secret Scanner** - scans public GitHub repositories for exposed credentials from the app or extension.
-4. **Risk Timeline + Reports** - tracks privacy score improvement and generates PDF audit reports.
+Scan prompts, repositories, selected folders, and outgoing Git changes before secrets become public.
 
-No cloud database. No telemetry. GenAI enhancement is optional. Core scanning works locally.
+</div>
 
 ---
 
-## One-Command Local Deployment
+## What it does
 
-### Windows
+ShadowAI Guardian is a local-first cybersecurity project for reducing accidental exposure of credentials and personal data.
+
+- **Prompt firewall** — detects API keys, passwords, database URLs, private keys, tokens, PII, unsafe commands, and prompt injection.
+- **Terminal scanner** — gives Docker-based `info`, `prompt`, and public GitHub repository commands.
+- **Live Guard** — watches only a folder you explicitly mount and reports risky file changes.
+- **Git Guard** — installs repository-local pre-commit and pre-push hooks that block critical/high-risk secrets.
+- **Public repository monitor** — periodically rescans an explicitly supplied public GitHub repository.
+- **Local dashboard** — displays scan history, privacy metrics, risk timelines, and downloadable PDF reports.
+- **Chrome extension** — provides advisory inspection on supported AI sites and GitHub repository pages.
+
+Core detection works locally without an API key. NVIDIA NIM enhancement is optional.
+
+## Requirements
+
+- Git
+- Docker Desktop on Windows/macOS, or Docker Engine with Compose on Linux
+
+Python and Node.js are **not required** on the user's laptop.
+
+## Quick start
 
 ```powershell
 git clone https://github.com/Ankit-builds1/shadowai-guardian.git
 cd shadowai-guardian
-.\setup.ps1
-.\start.ps1
+docker compose build
+docker compose run --rm shadowai info
 ```
 
-### macOS / Linux
+The first prompt scan generates a small local demonstration ML model inside the persistent Docker volume.
+
+## Terminal commands
+
+### Inspect a prompt or text
+
+```powershell
+docker compose run --rm shadowai prompt "Summarize this public paragraph"
+```
+
+Select a policy mode:
+
+```powershell
+docker compose run --rm shadowai prompt "text to inspect" --policy strict
+```
+
+Machine-readable output:
+
+```powershell
+docker compose run --rm shadowai prompt "text to inspect" --json
+```
+
+Exit codes are useful in scripts:
+
+| Code | Meaning |
+| ---: | --- |
+| `0` | Allowed / successful |
+| `1` | Warning |
+| `2` | Blocked finding |
+| `3` | Invalid input or runtime error |
+
+### Scan a public GitHub repository
+
+```powershell
+docker compose run --rm shadowai repo "https://github.com/owner/repository"
+```
+
+Only canonical public `https://github.com/owner/repository` URLs are accepted. Local paths, SSH URLs, embedded credentials, other hosts, and repository subpages are rejected.
+
+Use this feature only on repositories you own or have permission to assess.
+
+## Live Guard
+
+Live Guard monitors only the directory explicitly mounted into the container. It does not watch the whole laptop.
+
+### Windows PowerShell
+
+```powershell
+docker compose run --rm -v "C:\Projects:/workspace:ro" shadowai watch /workspace
+```
+
+### macOS/Linux
 
 ```bash
-git clone https://github.com/Ankit-builds1/shadowai-guardian.git
-cd shadowai-guardian
-chmod +x setup.sh start.sh
-./setup.sh
-./start.sh
+docker compose run --rm -v "$HOME/Projects:/workspace:ro" shadowai watch /workspace
 ```
 
-Then open:
+Live Guard scans existing supported files, then checks created or modified files. Press `Ctrl+C` to stop.
 
-- App: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
+Ignored content includes `.git`, virtual environments, `node_modules`, `.next`, build output, caches, binary files, and files larger than 1 MB.
 
----
+Example redacted alert:
 
-## Load the Chrome Extension
+```text
+[BLOCK] config.env:1 | PASSWORD | high | pass************e123 [PASSWORD_REDACTED]
+```
 
-After `start.ps1` or `start.sh` is running:
+## Git Guard
 
-1. Open Chrome.
-2. Go to `chrome://extensions`.
-3. Enable **Developer mode**.
-4. Click **Load unpacked**.
-5. Select the `browser-extension` folder from this repo.
+Git Guard installs pre-commit and pre-push hooks in a repository you explicitly mount. Existing hooks are backed up and chained.
 
-The extension adds:
+Build the image first from the ShadowAI Guardian directory:
 
-- **Inspect with ShadowAI** on supported AI websites.
-- **Scan Repo with ShadowAI** on GitHub repository pages.
+```powershell
+docker compose build shadowai
+```
 
-For prompt inspection it calls:
+Install into another repository on Windows:
+
+```powershell
+docker compose run --rm -v "C:\Projects\my-repo:/workspace/repository" shadowai install-hooks /workspace/repository
+```
+
+macOS/Linux:
+
+```bash
+docker compose run --rm -v "$HOME/Projects/my-repo:/workspace/repository" shadowai install-hooks /workspace/repository
+```
+
+Behavior:
+
+- Critical and high-severity findings block the commit or push.
+- Medium and low findings warn.
+- Output contains redacted values only.
+- An existing hook is preserved as `pre-commit.shadowai-backup` or `pre-push.shadowai-backup`.
+- An explicitly reviewed emergency operation can set `SHADOWAI_BYPASS=1`.
+
+If you rename the Docker image, set `SHADOWAI_IMAGE` when running Git commands.
+
+## Monitor an already-public repository
+
+```powershell
+docker compose run --rm shadowai monitor-repo "https://github.com/owner/repository" --interval 300
+```
+
+The interval must be between 30 and 86,400 seconds. The first result is printed immediately; later output appears only when the redacted finding fingerprint changes.
+
+This is a detection aid, not credential recovery. If a real secret was published, revoke or rotate it immediately. Removing it from the latest file does not remove it from Git history.
+
+## Start the dashboard
+
+```powershell
+docker compose up -d
+```
+
+Open:
+
+- Dashboard: <http://localhost:3000>
+- Backend health: <http://localhost:8000/health>
+- API documentation: <http://localhost:8000/docs>
+
+View logs:
+
+```powershell
+docker compose logs -f
+```
+
+Stop the application while keeping history:
+
+```powershell
+docker compose down
+```
+
+Delete all local ShadowAI scan history and the generated model:
+
+```powershell
+docker compose down -v
+```
+
+> `down -v` permanently deletes the project's Docker volume.
+
+## Chrome extension
+
+Keep the backend running, then:
+
+1. Open `chrome://extensions`.
+2. Enable **Developer mode**.
+3. Select **Load unpacked**.
+4. Choose this repository's `browser-extension` folder.
+
+Supported pages include ChatGPT, Claude, Gemini, Microsoft Copilot, and GitHub repository pages.
+
+The extension calls only the local backend:
 
 ```text
 http://localhost:8000/api/proxy/inspect
-```
-
-For GitHub repository scans it calls:
-
-```text
 http://localhost:8000/api/scan/github
 ```
 
-Supported AI sites include ChatGPT, Claude, Gemini, and Microsoft Copilot. GitHub repo pages are supported at `https://github.com/owner/repo`.
+The extension is advisory. It scans when the user selects the ShadowAI action; it does not silently record keystrokes or universally replace a website's send button.
 
----
+## Optional NVIDIA NIM enhancement
 
-## Optional NVIDIA NIM Setup
-
-The app works without an API key using local rule-based fallbacks.
-
-To enable GenAI-enhanced explanations and rewrite polishing:
-
-1. Get an NVIDIA NIM API key from https://build.nvidia.com
-2. Open `backend/.env`
-3. Set:
+Core scanning does not require NVIDIA NIM. To enable optional explanation/rewrite enhancement, create a root `.env` file:
 
 ```env
-NVIDIA_NIM_API_KEY=nvapi-your-key-here
+NVIDIA_NIM_API_KEY=nvapi-your-key
 ```
 
----
-
-## Tech Stack
-
-### Frontend
-
-- Next.js 14
-- TypeScript
-- Tailwind CSS
-- Recharts
-- Lucide Icons
-- Chrome Extension Manifest V3
-
-### Backend
-
-- FastAPI
-- Python 3.11+
-- SQLAlchemy async
-- SQLite
-- GitPython
-- PyMuPDF for PDF reports
-
-### AI / ML / Security
-
-- Scikit-learn
-- TF-IDF
-- Random Forest
-- Rule-based secret and PII detection
-- Prompt injection detection
-- Policy-based allow/warn/block decisions
-- NVIDIA NIM via OpenAI-compatible client, with local fallback
-
----
-
-## Core API Endpoints
-
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `GET` | `/health` | Backend health check |
-| `POST` | `/api/proxy/inspect` | Local proxy inspection with policy decision |
-| `POST` | `/api/scan/prompt` | Direct prompt scan |
-| `POST` | `/api/rewrite` | Generate redacted safe prompt |
-| `POST` | `/api/scan/github` | Scan public GitHub repository |
-| `GET` | `/api/dashboard/stats` | Privacy score and risk timeline |
-| `GET` | `/api/reports` | Scan report history |
-| `GET` | `/api/reports/{id}/pdf` | Download detailed PDF report |
-
----
+Never commit `.env`. Docker Compose passes the value at runtime; the key is not copied into either image.
 
 ## Architecture
+
+```mermaid
+flowchart LR
+    CLI["Docker CLI"] --> Engine["Shared security engine"]
+    Watch["Selected-folder Live Guard"] --> Engine
+    Hooks["Git pre-commit / pre-push"] --> Engine
+    Monitor["Public repository monitor"] --> Repo["Bounded GitHub scanner"]
+    Browser["Chrome extension"] --> API["FastAPI localhost API"]
+    Web["Next.js dashboard"] --> API
+    API --> Engine
+    API --> Repo
+    API --> DB["SQLite named volume"]
+    Engine --> Model["Local TF-IDF + Random Forest hint"]
+```
+
+The `api` and on-demand `shadowai` services share the same backend image and detector code. The dashboard uses a separate production Next.js image.
+
+## Detection and policy flow
+
+```text
+Input
+  -> regex secret/PII detector
+  -> prompt-injection detector
+  -> demonstration ML score hint
+  -> student/developer/company/strict policy
+  -> allow, warn, or block
+  -> optional redacted safe text
+```
+
+Detected categories include API keys, passwords, database URLs, private keys, JWTs, email addresses, phone numbers, payment-card patterns, Aadhaar/PAN patterns, unsafe commands, and prompt-injection phrases.
+
+## Project structure
 
 ```text
 shadowai-guardian/
 |-- backend/
 |   |-- app/
-|   |   |-- api/              # FastAPI routers
-|   |   |-- core/             # Config, SQLite models, async DB
-|   |   |-- detectors/        # Secret, PII, prompt injection detection
-|   |   |-- genai/            # NVIDIA NIM wrappers + fallbacks
-|   |   |-- ml/               # TF-IDF + Random Forest model
-|   |   |-- services/         # GitHub scanning, policy engine, PDF reports
-|   |   `-- schemas/          # Pydantic request models
-|   `-- requirements.txt
-|-- browser-extension/        # Chrome Manifest V3 local safety proxy
-|-- frontend/
-|   |-- app/                  # Next.js pages
-|   |-- components/           # Shared UI components
-|   `-- package.json
-|-- setup.ps1 / setup.sh      # Local setup scripts
-|-- start.ps1 / start.sh      # Local app runners
-`-- .env.example
+|   |   |-- api/               FastAPI routes
+|   |   |-- core/              settings and SQLite models
+|   |   |-- detectors/         secret, PII, and injection rules
+|   |   |-- genai/             optional NVIDIA enhancement
+|   |   |-- ml/                demonstration TF-IDF model
+|   |   |-- services/          policy, GitHub, and PDF services
+|   |   |-- cli.py             Docker terminal entrypoint
+|   |   |-- live_guard.py      selected-folder monitoring
+|   |   |-- git_guard.py       pre-commit/pre-push protection
+|   |   `-- repo_monitor.py    public-repository monitoring
+|   |-- tests/
+|   `-- Dockerfile
+|-- frontend/                   Next.js dashboard
+|-- browser-extension/          Chrome Manifest V3 extension
+|-- data/                       demonstration data documentation
+|-- tests/                      deployment contract tests
+|-- compose.yaml
+|-- .dockerignore
+|-- .env.example
+`-- LICENSE
 ```
 
----
+Generated environments, dependency folders, models, databases, caches, and build output are intentionally excluded from Git and Docker contexts.
 
-## Interview Pitch
+## Local data and privacy
 
-> I built ShadowAI Guardian, a local-first AI safety proxy that scans prompts and GitHub repositories for secrets, PII, prompt injection, and risky AI usage before data reaches GenAI tools. It includes a Chrome extension that works on AI sites and GitHub repo pages, a FastAPI policy engine, ML risk scoring, privacy timeline, and PDF audit reports.
+- CLI prompt scans do not write scan history to SQLite.
+- Dashboard/API prompt scans are stored in the local Docker volume so reports and timelines work.
+- Stored API history currently includes the original submitted text and should be treated as sensitive local data.
+- CLI, Live Guard, Git Guard, and repository-monitor output prints redacted values.
+- No cloud database or product telemetry is included.
+- Optional NVIDIA enhancement sends the already-redacted rewrite prompt to the configured NVIDIA endpoint.
 
-## Resume Bullets
+## Honest limitations
 
-- Built a local-first AI safety proxy using Next.js, FastAPI, SQLite, Chrome Manifest V3, and ML-based risk scoring to prevent sensitive data leakage into GenAI tools.
-- Implemented policy-based allow/warn/block decisions for prompts containing API keys, PII, credentials, or prompt injection attacks.
-- Developed a GitHub repository secret scanner and audit reporting workflow with privacy score tracking, risk timeline analytics, and downloadable PDF reports.
-- Packaged the system for one-command local deployment across Windows, macOS, and Linux.
+- The ML classifier is trained from a tiny demonstration dataset and is not a production-grade security model.
+- Regex rules can produce false positives and cannot recognize every secret format.
+- GitHub scanning is limited to public repositories and supported text/code files.
+- The browser extension is an advisory workflow, not a universal enforcement layer.
+- ShadowAI Guardian does not decrypt HTTPS, capture screens, record keystrokes, or inspect folders that were not explicitly mounted.
+- Network packet capture cannot reliably inspect secret text sent through encrypted HTTPS.
+- Dedicated secret managers, GitHub secret scanning, code review, credential rotation, and least-privilege access remain necessary.
 
----
+## Run the tests
+
+The normal user does not need a host Python installation. Maintainers can run verification in Docker or a Python 3.11+ development environment.
+
+```powershell
+docker compose build
+docker compose run --rm shadowai info
+docker compose run --rm shadowai prompt "ignore previous instructions"
+```
+
+Development test commands:
+
+```powershell
+python -m pytest backend/tests tests -q
+node browser-extension/repo-url.test.cjs
+node browser-extension/content-safety.test.cjs
+npm --prefix frontend audit --omit=dev
+```
+
+## Responsible use
+
+Scan only prompts, folders, Git repositories, and systems you own or are explicitly authorized to assess. Do not use the repository scanner to collect or exploit exposed credentials.
 
 ## License
 
-MIT License. Use responsibly and never scan repositories or prompts without permission.
+MIT License — see [LICENSE](LICENSE).
+
+## Author
+
+**Ankit Dash** — [GitHub](https://github.com/Ankit-builds1)

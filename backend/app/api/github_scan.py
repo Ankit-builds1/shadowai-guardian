@@ -20,5 +20,7 @@ async def scan_github(payload: RepoScanRequest, db: AsyncSession = Depends(get_d
         await db.commit()
         result["repo_scan_id"] = repo.id
         return result
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"GitHub scan failed: {exc}") from exc

@@ -1,0 +1,65 @@
+name: shadowai-guardian
+
+x-backend-build: &backend-build
+  context: .
+  dockerfile: backend/Dockerfile
+
+x-backend-environment: &backend-environment
+  DATABASE_URL: sqlite+aiosqlite:////data/shadowai.db
+  SHADOWAI_MODEL_PATH: /data/risk_model.pkl
+  NVIDIA_NIM_API_KEY: ${NVIDIA_NIM_API_KEY:-}
+  NVIDIA_NIM_BASE_URL: ${NVIDIA_NIM_BASE_URL:-https://integrate.api.nvidia.com/v1}
+  NVIDIA_NIM_MODEL: ${NVIDIA_NIM_MODEL:-meta/llama-3.1-8b-instruct}
+  SECRET_KEY: ${SECRET_KEY:-}
+
+services:
+  api:
+    image: shadowai-guardian:local
+    build: *backend-build
+    command: ["serve"]
+    environment: *backend-environment
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - shadowai_data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  shadowai:
+    image: shadowai-guardian:local
+    build: *backend-build
+    profiles: ["cli"]
+    environment: *backend-environment
+    volumes:
+      - shadowai_data:/data
+    stdin_open: true
+
+  web:
+    image: shadowai-guardian-web:local
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    environment:
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  shadowai_data:

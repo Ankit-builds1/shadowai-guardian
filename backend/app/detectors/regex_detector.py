@@ -1,5 +1,16 @@
 import re
 
+
+def _database_url_pattern(scheme: str) -> str:
+    return rf"{re.escape(scheme)}://[^\s]+"
+
+
+DATABASE_URL_PATTERNS = [
+    _database_url_pattern(scheme)
+    for scheme in ("mongodb", "mongodb+srv", "postgresql", "postgres", "mysql", "redis")
+]
+
+
 PATTERNS = {
     "API_KEY": [
         r"sk-[a-zA-Z0-9]{20,}",
@@ -11,7 +22,7 @@ PATTERNS = {
         r"nvapi-[a-zA-Z0-9\-_]{30,}",
     ],
     "PASSWORD": [r"(?i)password\s*[=:]\s*\S+", r"(?i)passwd\s*[=:]\s*\S+", r"(?i)pwd\s*[=:]\s*\S+", r"(?i)secret\s*[=:]\s*\S+"],
-    "DATABASE_URL": [r"mongodb(\+srv)?://[^\s]+", r"postgresql://[^\s]+", r"postgres://[^\s]+", r"mysql://[^\s]+", r"redis://[^\s]+", r"sqlite:///[^\s]+"],
+    "DATABASE_URL": DATABASE_URL_PATTERNS,
     "PRIVATE_KEY": [r"-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----"],
     "JWT_TOKEN": [r"eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}"],
     "EMAIL": [r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"],

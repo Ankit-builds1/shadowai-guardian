@@ -2,7 +2,7 @@ from pathlib import Path
 
 import joblib
 
-from app.ml.train_model import MODEL_PATH, train_model
+from app.ml.train_model import get_model_path, train_model
 
 model = None
 
@@ -10,11 +10,11 @@ model = None
 def load_model():
     global model
     if model is None:
-        if not Path(MODEL_PATH).exists():
-            model = train_model()
+        model_path = get_model_path()
+        if not Path(model_path).exists():
+            model = train_model(model_path)
         else:
-            model = joblib.load(MODEL_PATH)
-        print("ML model loaded successfully")
+            model = joblib.load(model_path)
     return model
 
 

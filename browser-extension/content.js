@@ -28,51 +28,72 @@ function writePrompt(element, value) {
   element.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
 }
 
-function showPanel(result, promptBox) {
+function createPanel(className) {
   let panel = document.getElementById("shadowai-panel");
   if (!panel) {
     panel = document.createElement("div");
     panel.id = "shadowai-panel";
     document.body.appendChild(panel);
   }
+  panel.replaceChildren();
+  panel.className = className;
+  return panel;
+}
+
+function appendPanelText(panel, className, text) {
+  const element = document.createElement("div");
+  element.className = className;
+  element.textContent = String(text ?? "");
+  panel.appendChild(element);
+  return element;
+}
+
+function appendPanelButton(actions, id, text, handler) {
+  const button = document.createElement("button");
+  button.id = id;
+  button.type = "button";
+  button.textContent = text;
+  button.addEventListener("click", handler);
+  actions.appendChild(button);
+}
+
+function showPanel(result, promptBox) {
   const decision = result.policy_decision || {};
-  panel.className = `shadowai-panel shadowai-${decision.action || "allow"}`;
-  panel.innerHTML = `
-    <div class="shadowai-title">ShadowAI Guardian: ${(decision.action || "allow").toUpperCase()}</div>
-    <div class="shadowai-meta">Risk ${result.risk_score}/100 • ${result.risk_level} • ${decision.policy_mode || "Developer"}</div>
-    <div class="shadowai-body">${(decision.reasons || []).slice(0, 3).join("<br>")}</div>
-    <div class="shadowai-actions">
-      ${result.safe_text ? "<button id=\"shadowai-use-safe\">Use safe prompt</button>" : ""}
-      <button id="shadowai-close">Close</button>
-    </div>
-  `;
-  panel.querySelector("#shadowai-close")?.addEventListener("click", () => panel.remove());
-  panel.querySelector("#shadowai-use-safe")?.addEventListener("click", () => {
-    writePrompt(promptBox, result.safe_text);
-    panel.remove();
-  });
+  const action = decision.action || "allow";
+  const panel = createPanel(`shadowai-panel shadowai-${action}`);
+  appendPanelText(panel, "shadowai-title", `ShadowAI Guardian: ${action.toUpperCase()}`);
+  appendPanelText(
+    panel,
+    "shadowai-meta",
+    `Risk ${result.risk_score ?? 0}/100 | ${result.risk_level || "Unknown"} | ${decision.policy_mode || "Developer"}`
+  );
+  appendPanelText(panel, "shadowai-body", (decision.reasons || []).slice(0, 3).join("\n"));
+  const actions = appendPanelText(panel, "shadowai-actions", "");
+  if (result.safe_text) {
+    appendPanelButton(actions, "shadowai-use-safe", "Use safe prompt", () => {
+      writePrompt(promptBox, result.safe_text);
+      panel.remove();
+    });
+  }
+  appendPanelButton(actions, "shadowai-close", "Close", () => panel.remove());
 }
 
 function showRepoPanel(result) {
-  let panel = document.getElementById("shadowai-panel");
-  if (!panel) {
-    panel = document.createElement("div");
-    panel.id = "shadowai-panel";
-    document.body.appendChild(panel);
-  }
   const isError = Boolean(result.error);
-  panel.className = `shadowai-panel shadowai-${isError ? "warn" : result.risk_level === "Safe" ? "allow" : "block"}`;
-  panel.innerHTML = `
-    <div class="shadowai-title">ShadowAI Repo Scan: ${isError ? "WARN" : result.risk_level}</div>
-    <div class="shadowai-meta">${result.repo_name || "GitHub repository"}</div>
-    <div class="shadowai-body">
-      ${isError ? result.error : `${result.files_scanned} files scanned<br>${result.secrets_found} secrets found<br>Risk ${result.risk_score}/100`}
-    </div>
-    <div class="shadowai-actions">
-      <button id="shadowai-close">Close</button>
-    </div>
-  `;
-  panel.querySelector("#shadowai-close")?.addEventListener("click", () => panel.remove());
+  const state = isError ? "warn" : result.risk_level === "Safe" ? "allow" : "block";
+  const panel = createPanel(`shadowai-panel shadowai-${state}`);
+  appendPanelText(
+    panel,
+    "shadowai-title",
+    `ShadowAI Repo Scan: ${isError ? "WARN" : result.risk_level || "Unknown"}`
+  );
+  appendPanelText(panel, "shadowai-meta", result.repo_name || "GitHub repository");
+  const body = isError
+    ? result.error
+    : `${result.files_scanned} files scanned\n${result.secrets_found} secrets found\nRisk ${result.risk_score}/100`;
+  appendPanelText(panel, "shadowai-body", body);
+  const actions = appendPanelText(panel, "shadowai-actions", "");
+  appendPanelButton(actions, "shadowai-close", "Close", () => panel.remove());
 }
 
 async function scanGitHubRepo() {

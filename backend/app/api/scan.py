@@ -24,9 +24,18 @@ async def persist_prompt_scan(db: AsyncSession, text: str, source_type: str, res
 def build_scan_result(text: str, source_type: str = "prompt") -> dict:
     detection = detect_all(text)
     injection = detect_injection(text)
-    score = min(100, max(detection["risk_score"], injection.get("injection_risk_score", 0)))
+    deterministic_score = min(
+        100,
+        max(detection["risk_score"], injection.get("injection_risk_score", 0)),
+    )
     ml = predict_risk(text)
-    score = max(score, ml["score_hint"] if ml["confidence"] > 0.55 else 0)
+    ml_score = ml["score_hint"] if ml["confidence"] > 0.55 else 0
+    # The bundled model is deliberately small and advisory. It must never turn
+    # otherwise clean text into a block on a fresh install; deterministic
+    # secret and injection detectors remain authoritative.
+    if deterministic_score == 0 and not injection["is_injection_attack"]:
+        ml_score = min(ml_score, 20)
+    score = max(deterministic_score, ml_score)
     result = {**detection, "risk_score": score, "risk_level": get_risk_level(score), "source_type": source_type, "injection_detected": injection["is_injection_attack"], "injection": injection, "ml_confidence": ml["confidence"]}
     result["explanation"] = explain_risk(result)
     return result

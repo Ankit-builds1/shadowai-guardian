@@ -10,8 +10,8 @@
     "axios": "^1.7.0",
     "clsx": "^2.1.0",
     "lucide-react": "^0.378.0",
-    "next": "^14.2.35",
-    "postcss": "^8.4.38",
+    "next": "^15.5.18",
+    "postcss": "^8.5.18",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.0",
@@ -25,6 +25,9 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
-    "eslint-config-next": "^14.2.35"
+    "eslint-config-next": "^15.5.18"
+  },
+  "overrides": {
+    "postcss": "$postcss"
   }
 }
